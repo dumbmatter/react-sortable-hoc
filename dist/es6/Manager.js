@@ -29,6 +29,11 @@ var Manager = function () {
       }
     }
   }, {
+    key: 'isActive',
+    value: function isActive() {
+      return this.active;
+    }
+  }, {
     key: 'getActive',
     value: function getActive() {
       var _this = this;

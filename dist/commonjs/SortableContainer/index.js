@@ -16,6 +16,10 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _propTypes = require('prop-types');
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
 var _reactDom = require('react-dom');
 
 var _invariant = require('invariant');
@@ -126,7 +130,7 @@ function sortableContainer(WrappedComponent) {
           if (!distance && (!pressThreshold || pressThreshold && delta >= pressThreshold)) {
             clearTimeout(_this.cancelTimer);
             _this.cancelTimer = setTimeout(_this.cancel, 0);
-          } else if (distance && delta >= distance) {
+          } else if (distance && delta >= distance && _this.manager.isActive()) {
             _this.handlePress(e);
           }
         }
@@ -215,6 +219,7 @@ function sortableContainer(WrappedComponent) {
           if (hideSortableGhost) {
             _this.sortableGhost = node;
             node.style.visibility = 'hidden';
+            node.style.opacity = 0;
           }
 
           _this.minTranslate = {};
@@ -285,6 +290,7 @@ function sortableContainer(WrappedComponent) {
 
         if (hideSortableGhost && _this.sortableGhost) {
           _this.sortableGhost.style.visibility = '';
+          _this.sortableGhost.style.opacity = '';
         }
 
         var nodes = _this.manager.refs[collection];
@@ -613,6 +619,7 @@ function sortableContainer(WrappedComponent) {
               */
               this.sortableGhost = node;
               node.style.visibility = 'hidden';
+              node.style.opacity = 0;
             }
             continue;
           }
@@ -725,25 +732,25 @@ function sortableContainer(WrappedComponent) {
       };
     }
   }, _class.propTypes = {
-    axis: _react.PropTypes.oneOf(['x', 'y', 'xy']),
-    distance: _react.PropTypes.number,
-    lockAxis: _react.PropTypes.string,
-    helperClass: _react.PropTypes.string,
-    transitionDuration: _react.PropTypes.number,
-    contentWindow: _react.PropTypes.any,
-    onSortStart: _react.PropTypes.func,
-    onSortMove: _react.PropTypes.func,
-    onSortEnd: _react.PropTypes.func,
-    shouldCancelStart: _react.PropTypes.func,
-    pressDelay: _react.PropTypes.number,
-    useDragHandle: _react.PropTypes.bool,
-    useWindowAsScrollContainer: _react.PropTypes.bool,
-    hideSortableGhost: _react.PropTypes.bool,
-    lockToContainerEdges: _react.PropTypes.bool,
-    lockOffset: _react.PropTypes.oneOfType([_react.PropTypes.number, _react.PropTypes.string, _react.PropTypes.arrayOf(_react.PropTypes.oneOfType([_react.PropTypes.number, _react.PropTypes.string]))]),
-    getContainer: _react.PropTypes.func,
-    getHelperDimensions: _react.PropTypes.func
+    axis: _propTypes2.default.oneOf(['x', 'y', 'xy']),
+    distance: _propTypes2.default.number,
+    lockAxis: _propTypes2.default.string,
+    helperClass: _propTypes2.default.string,
+    transitionDuration: _propTypes2.default.number,
+    contentWindow: _propTypes2.default.any,
+    onSortStart: _propTypes2.default.func,
+    onSortMove: _propTypes2.default.func,
+    onSortEnd: _propTypes2.default.func,
+    shouldCancelStart: _propTypes2.default.func,
+    pressDelay: _propTypes2.default.number,
+    useDragHandle: _propTypes2.default.bool,
+    useWindowAsScrollContainer: _propTypes2.default.bool,
+    hideSortableGhost: _propTypes2.default.bool,
+    lockToContainerEdges: _propTypes2.default.bool,
+    lockOffset: _propTypes2.default.oneOfType([_propTypes2.default.number, _propTypes2.default.string, _propTypes2.default.arrayOf(_propTypes2.default.oneOfType([_propTypes2.default.number, _propTypes2.default.string]))]),
+    getContainer: _propTypes2.default.func,
+    getHelperDimensions: _propTypes2.default.func
   }, _class.childContextTypes = {
-    manager: _react.PropTypes.object.isRequired
+    manager: _propTypes2.default.object.isRequired
   }, _temp;
 }

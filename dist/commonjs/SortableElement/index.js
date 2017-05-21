@@ -14,6 +14,10 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _propTypes = require('prop-types');
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
 var _reactDom = require('react-dom');
 
 var _invariant = require('invariant');
@@ -127,11 +131,11 @@ function sortableElement(WrappedComponent) {
 
     return _class;
   }(_react.Component), _class.displayName = (0, _utils.provideDisplayName)('sortableElement', WrappedComponent), _class.contextTypes = {
-    manager: _react.PropTypes.object.isRequired
+    manager: _propTypes2.default.object.isRequired
   }, _class.propTypes = {
-    index: _react.PropTypes.number.isRequired,
-    collection: _react.PropTypes.oneOfType([_react.PropTypes.number, _react.PropTypes.string]),
-    disabled: _react.PropTypes.bool
+    index: _propTypes2.default.number.isRequired,
+    collection: _propTypes2.default.oneOfType([_propTypes2.default.number, _propTypes2.default.string]),
+    disabled: _propTypes2.default.bool
   }, _class.defaultProps = {
     collection: 0
   }, _temp;

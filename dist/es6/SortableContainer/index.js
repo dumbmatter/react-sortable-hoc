@@ -6,7 +6,8 @@ import _classCallCheck from 'babel-runtime/helpers/classCallCheck';
 import _createClass from 'babel-runtime/helpers/createClass';
 import _possibleConstructorReturn from 'babel-runtime/helpers/possibleConstructorReturn';
 import _inherits from 'babel-runtime/helpers/inherits';
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { findDOMNode } from 'react-dom';
 import invariant from 'invariant';
 
@@ -101,7 +102,7 @@ export default function sortableContainer(WrappedComponent) {
           if (!distance && (!pressThreshold || pressThreshold && delta >= pressThreshold)) {
             clearTimeout(_this.cancelTimer);
             _this.cancelTimer = setTimeout(_this.cancel, 0);
-          } else if (distance && delta >= distance) {
+          } else if (distance && delta >= distance && _this.manager.isActive()) {
             _this.handlePress(e);
           }
         }
@@ -190,6 +191,7 @@ export default function sortableContainer(WrappedComponent) {
           if (hideSortableGhost) {
             _this.sortableGhost = node;
             node.style.visibility = 'hidden';
+            node.style.opacity = 0;
           }
 
           _this.minTranslate = {};
@@ -260,6 +262,7 @@ export default function sortableContainer(WrappedComponent) {
 
         if (hideSortableGhost && _this.sortableGhost) {
           _this.sortableGhost.style.visibility = '';
+          _this.sortableGhost.style.opacity = '';
         }
 
         var nodes = _this.manager.refs[collection];
@@ -588,6 +591,7 @@ export default function sortableContainer(WrappedComponent) {
               */
               this.sortableGhost = node;
               node.style.visibility = 'hidden';
+              node.style.opacity = 0;
             }
             continue;
           }
