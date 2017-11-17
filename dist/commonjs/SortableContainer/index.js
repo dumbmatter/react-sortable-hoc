@@ -68,8 +68,8 @@ function sortableContainer(WrappedComponent) {
 
         _this._touched = true;
         _this._pos = {
-          x: e.clientX,
-          y: e.clientY
+          x: e.pageX,
+          y: e.pageY
         };
 
         var node = (0, _utils.closest)(e.target, function (el) {
@@ -122,8 +122,8 @@ function sortableContainer(WrappedComponent) {
 
         if (!_this.state.sorting && _this._touched) {
           _this._delta = {
-            x: _this._pos.x - e.clientX,
-            y: _this._pos.y - e.clientY
+            x: _this._pos.x - e.pageX,
+            y: _this._pos.y - e.pageY
           };
           var delta = Math.abs(_this._delta.x) + Math.abs(_this._delta.y);
 
@@ -198,12 +198,19 @@ function sortableContainer(WrappedComponent) {
             left: _this.scrollContainer.scrollLeft
           };
 
+          _this.initialWindowScroll = {
+            top: window.pageYOffset,
+            left: window.pageXOffset
+          };
+
           var fields = node.querySelectorAll('input, textarea, select');
           var clonedNode = node.cloneNode(true);
           var clonedFields = [].concat(_toConsumableArray(clonedNode.querySelectorAll('input, textarea, select'))); // Convert NodeList to Array
 
           clonedFields.forEach(function (field, index) {
-            return field.value = fields[index] && fields[index].value;
+            if (field.type !== 'file' && fields[index]) {
+              field.value = fields[index].value;
+            }
           });
 
           _this.helper = _this.document.body.appendChild(clonedNode);
@@ -406,10 +413,16 @@ function sortableContainer(WrappedComponent) {
         var _this2 = this;
 
         var _props = this.props,
-            contentWindow = _props.contentWindow,
             getContainer = _props.getContainer,
             useWindowAsScrollContainer = _props.useWindowAsScrollContainer;
 
+        /*
+         *  Set our own default rather than using defaultProps because Jest
+         *  snapshots will serialize window, causing a RangeError
+         *  https://github.com/clauderic/react-sortable-hoc/issues/249
+         */
+
+        var contentWindow = this.props.contentWindow || window;
 
         this.container = typeof getContainer === 'function' ? getContainer(this.getWrappedInstance()) : (0, _reactDom.findDOMNode)(this);
         this.document = this.container.ownerDocument || document;
@@ -467,8 +480,8 @@ function sortableContainer(WrappedComponent) {
       key: 'getOffset',
       value: function getOffset(e) {
         return {
-          x: e.touches ? e.touches[0].clientX : e.clientX,
-          y: e.touches ? e.touches[0].clientY : e.clientY
+          x: e.touches ? e.touches[0].pageX : e.pageX,
+          y: e.touches ? e.touches[0].pageY : e.pageY
         };
       }
     }, {
@@ -525,11 +538,16 @@ function sortableContainer(WrappedComponent) {
             lockAxis = _props2.lockAxis,
             lockToContainerEdges = _props2.lockToContainerEdges;
 
+
         var offset = this.getOffset(e);
         var translate = {
           x: offset.x - this.initialOffset.x,
           y: offset.y - this.initialOffset.y
         };
+        // Adjust for window scroll
+        translate.y -= window.pageYOffset - this.initialWindowScroll.top;
+        translate.x -= window.pageXOffset - this.initialWindowScroll.left;
+
         this.translate = translate;
 
         if (lockToContainerEdges) {
@@ -575,6 +593,10 @@ function sortableContainer(WrappedComponent) {
           left: this.offsetEdge.left + this.translate.x + deltaScroll.left,
           top: this.offsetEdge.top + this.translate.y + deltaScroll.top
         };
+        var scrollDifference = {
+          top: window.pageYOffset - this.initialWindowScroll.top,
+          left: window.pageXOffset - this.initialWindowScroll.left
+        };
         this.newIndex = null;
 
         for (var i = 0, len = nodes.length; i < len; i++) {
@@ -587,6 +609,7 @@ function sortableContainer(WrappedComponent) {
             width: this.width > width ? width / 2 : this.width / 2,
             height: this.height > height ? height / 2 : this.height / 2
           };
+
           var translate = {
             x: 0,
             y: 0
@@ -631,7 +654,7 @@ function sortableContainer(WrappedComponent) {
           if (this.axis.x) {
             if (this.axis.y) {
               // Calculations for a grid setup
-              if (index < this.index && (sortingOffset.left - offset.width <= edgeOffset.left && sortingOffset.top <= edgeOffset.top + offset.height || sortingOffset.top + offset.height <= edgeOffset.top)) {
+              if (index < this.index && (sortingOffset.left + scrollDifference.left - offset.width <= edgeOffset.left && sortingOffset.top + scrollDifference.top <= edgeOffset.top + offset.height || sortingOffset.top + scrollDifference.top + offset.height <= edgeOffset.top)) {
                 // If the current node is to the left on the same row, or above the node that's being dragged
                 // then move it to the right
                 translate.x = this.width + this.marginOffset.x;
@@ -645,7 +668,7 @@ function sortableContainer(WrappedComponent) {
                 if (this.newIndex === null) {
                   this.newIndex = index;
                 }
-              } else if (index > this.index && (sortingOffset.left + offset.width >= edgeOffset.left && sortingOffset.top + offset.height >= edgeOffset.top || sortingOffset.top + offset.height >= edgeOffset.top + height)) {
+              } else if (index > this.index && (sortingOffset.left + scrollDifference.left + offset.width >= edgeOffset.left && sortingOffset.top + scrollDifference.top + offset.height >= edgeOffset.top || sortingOffset.top + scrollDifference.top + offset.height >= edgeOffset.top + height)) {
                 // If the current node is to the right on the same row, or below the node that's being dragged
                 // then move it to the left
                 translate.x = -(this.width + this.marginOffset.x);
@@ -659,10 +682,10 @@ function sortableContainer(WrappedComponent) {
                 this.newIndex = index;
               }
             } else {
-              if (index > this.index && sortingOffset.left + offset.width >= edgeOffset.left) {
+              if (index > this.index && sortingOffset.left + scrollDifference.left + offset.width >= edgeOffset.left) {
                 translate.x = -(this.width + this.marginOffset.x);
                 this.newIndex = index;
-              } else if (index < this.index && sortingOffset.left <= edgeOffset.left + offset.width) {
+              } else if (index < this.index && sortingOffset.left + scrollDifference.left <= edgeOffset.left + offset.width) {
                 translate.x = this.width + this.marginOffset.x;
                 if (this.newIndex == null) {
                   this.newIndex = index;
@@ -670,10 +693,10 @@ function sortableContainer(WrappedComponent) {
               }
             }
           } else if (this.axis.y) {
-            if (index > this.index && sortingOffset.top + offset.height >= edgeOffset.top) {
+            if (index > this.index && sortingOffset.top + scrollDifference.top + offset.height >= edgeOffset.top) {
               translate.y = -(this.height + this.marginOffset.y);
               this.newIndex = index;
-            } else if (index < this.index && sortingOffset.top <= edgeOffset.top + offset.height) {
+            } else if (index < this.index && sortingOffset.top + scrollDifference.top <= edgeOffset.top + offset.height) {
               translate.y = this.height + this.marginOffset.y;
               if (this.newIndex == null) {
                 this.newIndex = index;
@@ -713,7 +736,6 @@ function sortableContainer(WrappedComponent) {
     distance: 0,
     useWindowAsScrollContainer: false,
     hideSortableGhost: true,
-    contentWindow: typeof window !== 'undefined' ? window : null,
     shouldCancelStart: function shouldCancelStart(e) {
       // Cancel sorting if the event target is an `input`, `textarea`, `select` or `option`
       var disabledElements = ['input', 'textarea', 'select', 'option', 'button'];
